@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>{{ titulo }}</h1>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button class="btn btn-primary">Guardar</button>
+            {% if back_url %}
+                <a href="{% url back_url %}" class="btn btn-secondary">Volver</a>
+            {% elif movil %}
+                <a href="{% url 'movil_detail' movil.pk %}" class="btn btn-secondary">Volver</a>
+            {% else %}
+                <a href="javascript:history.back()" class="btn btn-secondary">Volver</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

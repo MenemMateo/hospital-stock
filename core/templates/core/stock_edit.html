@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Modificar stock: {{ stock.medicamento.nombre }} ({{ stock.movil.nombre }})</h1>
+<div class="card mb-4">
+    <div class="card-body">
+        <p><strong>Cantidad actual:</strong> {{ stock.cantidad }}</p>
+        <p><strong>Vencimiento:</strong> {{ stock.fecha_vencimiento }}</p>
+        <p><strong>Estado:</strong> {{ stock.alerta }}</p>
+    </div>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                {{ form.action.label_tag }}
+                {{ form.action }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="id_cantidad">Cantidad</label>
+                {{ form.cantidad }}
+                {% for error in form.cantidad.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.origen.label_tag }}
+                {{ form.origen }}
+                {% for error in form.origen.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-check mb-3">
+                {{ form.enviar_recuperado }}
+                {{ form.enviar_recuperado.label_tag }}
+            </div>
+            <button class="btn btn-primary">Guardar</button>
+            <a href="{% url 'movil_detail' stock.movil.pk %}" class="btn btn-secondary">Volver</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

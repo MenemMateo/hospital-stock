@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Confirmar descarte</h1>
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">¿Descartar este stock?</h4>
+    <p>
+        <strong>Medicamento:</strong> {{ stock.medicamento.nombre }}<br>
+        <strong>Cantidad:</strong> {{ stock.cantidad }}<br>
+        <strong>Móvil:</strong> {{ stock.movil.nombre }}<br>
+        <strong>Fecha vencimiento:</strong> {{ stock.fecha_vencimiento }}
+    </p>
+    <hr>
+    <p class="mb-0">Esta acción moverá el stock a la lista de vencidos y lo eliminará del móvil.</p>
+</div>
+<form method="post" style="display:inline;">
+    {% csrf_token %}
+    <button class="btn btn-danger">Confirmar descarte</button>
+    <a href="{% url 'movil_detail' stock.movil.pk %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

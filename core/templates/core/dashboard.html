@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Dashboard de móviles</h1>
+    {% if can_modify_stock %}
+        <a class="btn btn-success" href="{% url 'add_movil' %}">Agregar móvil</a>
+    {% endif %}
+</div>
+
+<!-- Alertas de gastos -->
+{% if porcentaje_limite >= 100 %}
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" data-session-alert-key="gastos-limite-{% now 'Y-m' %}-danger">
+        <strong>¡Límite de gastos excedido!</strong>
+        Se ha superado el límite mensual de ${{ limite_mensual }}.
+        Gastos actuales: ${{ total_gastado|floatformat:2 }}
+        <a href="{% url 'gastos_list' %}" class="alert-link">Ver detalles</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+{% elif porcentaje_limite >= porcentaje_alerta %}
+    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert" data-session-alert-key="gastos-limite-{% now 'Y-m' %}-warning">
+        <strong>Advertencia de gastos:</strong>
+        Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del límite mensual.
+        Gastos actuales: ${{ total_gastado|floatformat:2 }} de ${{ limite_mensual }}
+        <a href="{% url 'gastos_list' %}" class="alert-link">Ver detalles</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+{% endif %}
+
+<div class="row gy-3">
+    {% for item in estados %}
+        <div class="col-md-4">
+            {% if item.nivel == 'success' %}
+                <div class="card border-success">
+            {% elif item.nivel == 'warning' %}
+                <div class="card border-warning">
+            {% else %}
+                <div class="card border-danger">
+            {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item.movil.nombre }}</h5>
+                        <p class="card-text">Estado: <strong>{{ item.mensaje }}</strong></p>
+                        <a href="{% url 'movil_detail' item.movil.pk %}" class="btn btn-primary">Ver detalle</a>
+                    </div>
+                </div>
+        </div>
+    {% empty %}
+        <p>No hay móviles registrados.</p>
+    {% endfor %}
+</div>
+{% endblock %}

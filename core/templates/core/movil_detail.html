@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Detalle de {{ movil.nombre }}</h1>
+<div class="mb-3">
+    {% if can_modify_stock %}
+        <a href="{% url 'transferir_stock' movil.pk %}" class="btn btn-success">Transferir stock</a>
+        <a href="{% url 'ajustar_stock' movil.pk %}" class="btn btn-warning">Ajustar stock</a>
+    {% endif %}
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Medicamento</th>
+            <th>Cantidad</th>
+            <th>Estado</th>
+            <th>Vencimiento</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in stock_items %}
+            <tr class="{% if item.es_vencido %}table-danger{% elif item.vence_pronto or item.cantidad < item.low_stock_threshold %}table-warning{% else %}table-success{% endif %}">
+                <td><a href="{% url 'edit_stock_item' item.pk %}">{{ item.medicamento.nombre }}</a></td>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.alerta }}</td>
+                <td>{{ item.fecha_vencimiento }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_stock_item' item.pk %}">Editar</a>
+                    {% if item.es_vencido %}
+                        <a class="btn btn-sm btn-danger" href="{% url 'descartar_stock_item' item.pk %}">Descartar</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No hay stock en este móvil.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

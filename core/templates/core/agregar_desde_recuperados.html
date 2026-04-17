@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Agregar {{ recuperado.medicamento.nombre }} desde recuperados</h1>
+<div class="card mb-4">
+    <div class="card-body">
+        <p><strong>Cantidad disponible:</strong> {{ recuperado.cantidad }}</p>
+        <p><strong>Móvil origen:</strong> {% if recuperado.movil_origen %}{{ recuperado.movil_origen.nombre }}{% else %}Desconocido{% endif %}</p>
+        <p><strong>Fecha recuperación:</strong> {{ recuperado.fecha }}</p>
+    </div>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" for="id_movil">Móvil destino</label>
+                <select name="movil" id="id_movil" class="form-control" required>
+                    <option value="">-- Seleccionar móvil --</option>
+                    {% for movil in mobiles %}
+                        <option value="{{ movil.pk }}">{{ movil.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="id_cantidad">Cantidad</label>
+                <input type="number" name="cantidad" id="id_cantidad" class="form-control" min="1" max="{{ recuperado.cantidad }}" required>
+            </div>
+            <button class="btn btn-primary">Agregar</button>
+            <a href="{% url 'recuperados_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
