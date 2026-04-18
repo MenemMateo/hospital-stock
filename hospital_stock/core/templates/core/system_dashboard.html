@@ -17,11 +17,11 @@
 
 {% if porcentaje_limite >= 100 %}
     <div class="alert alert-danger">
-        El gasto mensual ya supero el limite configurado de ${{ config_gastos.limite_mensual }}.
+        Las compras del mes ya superaron el limite configurado de ${{ config_gastos.limite_mensual }}.
     </div>
 {% elif porcentaje_limite >= config_gastos.porcentaje_alerta %}
     <div class="alert alert-warning">
-        El gasto mensual va por {{ porcentaje_limite|floatformat:1 }}% del limite configurado.
+        Las compras del mes van por {{ porcentaje_limite|floatformat:1 }}% del limite configurado.
     </div>
 {% endif %}
 
@@ -275,7 +275,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-muted mb-0 mt-3">Limite configurado: ${{ config_gastos.limite_mensual }} | alerta desde {{ config_gastos.porcentaje_alerta }}%.</p>
+                    <p class="text-muted mb-0 mt-3">El limite configurado aplica solo a compras: ${{ config_gastos.limite_mensual }} | alerta desde {{ config_gastos.porcentaje_alerta }}%.</p>
                 </div>
             </div>
         </div>

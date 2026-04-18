@@ -165,3 +165,26 @@ class StockFlowTests(TestCase):
         vencido = Vencido.objects.get(medicamento=self.medicamento, movil_origen=self.movil)
         self.assertEqual(vencido.cantidad, 3)
         self.assertTrue(Movimiento.objects.filter(medicamento=self.medicamento, movil=self.movil, tipo='vencido').exists())
+
+    def test_superuser_can_view_users_section_and_delete_other_user(self):
+        superuser = User.objects.create_superuser(username='admin', password='supersecret', email='admin@example.com')
+        other_user = User.objects.create_user(username='temporal', password='secret123')
+        self.client.force_login(superuser)
+
+        response = self.client.get(reverse('users_list'))
+        delete_response = self.client.post(reverse('delete_user', args=[other_user.pk]), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Usuarios')
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(User.objects.filter(pk=other_user.pk).exists())
+
+    def test_superuser_cannot_delete_self(self):
+        superuser = User.objects.create_superuser(username='admin_self', password='supersecret', email='adminself@example.com')
+        self.client.force_login(superuser)
+
+        response = self.client.post(reverse('delete_user', args=[superuser.pk]), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(pk=superuser.pk).exists())
+        self.assertContains(response, 'No puede eliminar su propio usuario')

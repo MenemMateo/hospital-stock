@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -180,7 +181,7 @@ def _system_dashboard_context(detail_mode=False):
         contar_como_gasto=True,
         movil__isnull=False,
     ).aggregate(total=Sum('total'))['total'] or 0
-    porcentaje_limite = (gasto_total_mes / config.limite_mensual) * 100 if config.limite_mensual else 0
+    porcentaje_limite = (gasto_compras / config.limite_mensual) * 100 if config.limite_mensual else 0
 
     resumen_moviles = []
     for movil in Movil.objects.all():
@@ -236,7 +237,7 @@ def _system_dashboard_context(detail_mode=False):
             {'label': 'Stock bajo', 'value': len(low_alerts), 'variant': 'warning'},
             {'label': 'Por vencer', 'value': len(expiring_alerts), 'variant': 'warning'},
             {'label': 'Vencidos', 'value': len(expired_alerts), 'variant': 'danger'},
-            {'label': 'Gasto del mes', 'value': f'${gasto_total_mes:.2f}', 'variant': 'success'},
+            {'label': 'Compras del mes', 'value': f'${gasto_compras:.2f}', 'variant': 'success'},
         ],
         'resumen_moviles': resumen_moviles,
         'resumen_medicamentos': sorted(resumen_medicamentos.values(), key=lambda item: item['nombre']),
@@ -548,16 +549,54 @@ def add_inventario(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
+def users_list(request):
+    usuarios = User.objects.prefetch_related('groups').order_by('username')
+    return render(request, 'core/users_list.html', {'usuarios': usuarios})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
 def create_user(request):
     if request.method == 'POST':
         form = UsuarioCreateForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario creado correctamente.')
-            return redirect('dashboard')
+            return redirect('users_list')
     else:
         form = UsuarioCreateForm()
-    return render(request, 'core/action_form.html', {'form': form, 'titulo': 'Crear usuario', 'back_url': 'dashboard'})
+    return render(
+        request,
+        'core/action_form.html',
+        {
+            'form': form,
+            'titulo': 'Crear usuario',
+            'descripcion': 'Solo el superuser puede crear o administrar usuarios desde esta seccion.',
+            'back_url': 'users_list',
+        },
+    )
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def delete_user(request, pk):
+    if request.method != 'POST':
+        return redirect('users_list')
+
+    usuario = get_object_or_404(User, pk=pk)
+
+    if usuario == request.user:
+        messages.error(request, 'No puede eliminar su propio usuario mientras esta logueado.')
+        return redirect('users_list')
+
+    if usuario.is_superuser and User.objects.filter(is_superuser=True).count() <= 1:
+        messages.error(request, 'No puede eliminar el ultimo superuser del sistema.')
+        return redirect('users_list')
+
+    username = usuario.username
+    usuario.delete()
+    messages.success(request, f'Usuario "{username}" eliminado correctamente.')
+    return redirect('users_list')
 
 
 @login_required
@@ -744,8 +783,6 @@ def gastos_list(request):
         ).order_by('-fecha')
         compras_consumo_gasto = compras_consumo.filter(contar_como_gasto=True)
         total_consumo = compras_consumo_gasto.aggregate(total=Sum('total'))['total'] or 0
-        porcentaje_limite = (total_consumo / config.limite_mensual) * 100 if config.limite_mensual else 0
-
         resumen_moviles = []
         for movil in Movil.objects.all():
             compras_movil = compras_consumo.filter(movil=movil)
@@ -772,7 +809,6 @@ def gastos_list(request):
             {
                 'compras_consumo': compras_consumo,
                 'total_consumo': total_consumo,
-                'porcentaje_limite': porcentaje_limite,
                 'resumen_moviles': resumen_moviles,
             }
         )

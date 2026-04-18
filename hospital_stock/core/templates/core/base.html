@@ -5,44 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hospital Stock</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --hs-navy: #11243b;
+            --hs-slate: #1f3654;
+            --hs-accent: #56b38f;
+            --hs-cream: #f7f5ef;
+            --hs-border: rgba(255, 255, 255, 0.14);
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(86, 179, 143, 0.12), transparent 26%),
+                linear-gradient(180deg, #f5f7fb 0%, #eef2f8 100%);
+            min-height: 100vh;
+        }
+
+        .hs-navbar-wrap {
+            padding: 1rem 0 0.5rem;
+        }
+
+        .hs-navbar {
+            background: linear-gradient(135deg, var(--hs-navy), var(--hs-slate));
+            border: 1px solid var(--hs-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(17, 36, 59, 0.18);
+            overflow: hidden;
+        }
+
+        .hs-navbar .container-fluid {
+            padding: 1rem 1.2rem;
+        }
+
+        .hs-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+        }
+
+        .hs-brand:hover {
+            color: #fff;
+        }
+
+        .hs-brand-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(86, 179, 143, 0.4));
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .hs-brand-copy {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.05;
+        }
+
+        .hs-brand-copy small {
+            color: rgba(255,255,255,0.68);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .hs-nav-group {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            padding: 0.35rem;
+            gap: 0.35rem;
+            margin: 0 auto;
+        }
+
+        .hs-nav-link {
+            color: rgba(255,255,255,0.82);
+            border-radius: 999px;
+            padding: 0.6rem 0.95rem !important;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .hs-nav-link:hover,
+        .hs-nav-link:focus {
+            color: #fff;
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-1px);
+        }
+
+        .hs-user-panel {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            padding: 0.35rem 0.45rem 0.35rem 0.8rem;
+        }
+
+        .hs-user-badge {
+            color: #fff;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .hs-logout-btn,
+        .hs-login-link {
+            border-radius: 999px;
+            padding: 0.5rem 0.95rem !important;
+            color: #fff !important;
+            background: rgba(255,255,255,0.1);
+            text-decoration: none;
+        }
+
+        .hs-logout-btn:hover,
+        .hs-login-link:hover {
+            background: rgba(255,255,255,0.18);
+        }
+
+        .hs-shell {
+            padding-bottom: 2rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .hs-nav-group {
+                border-radius: 24px;
+                margin: 1rem 0;
+            }
+
+            .hs-user-panel {
+                margin-top: 0.75rem;
+                justify-content: space-between;
+                border-radius: 18px;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">Hospital Stock</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Principal</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'moviles_dashboard' %}">Moviles</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'inventario_list' %}">Inventario</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'gastos_list' %}">Gastos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'recuperados_list' %}">Recuperados</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'vencidos_list' %}">Vencidos</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'movimientos_list' %}">Movimientos</a></li>
-                {% if can_create_user %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'create_user' %}">Crear usuario</a></li>
-                {% endif %}
-            </ul>
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item"><span class="navbar-text me-3">{{ user.username }}</span></li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link">Salir</button>
-                        </form>
-                    </li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
-                {% endif %}
-            </ul>
-        </div>
+<div class="container hs-shell">
+    <div class="hs-navbar-wrap">
+        <nav class="navbar navbar-expand-lg hs-navbar navbar-dark">
+            <div class="container-fluid">
+                <a class="hs-brand" href="{% url 'dashboard' %}">
+                    <span class="hs-brand-mark">HS</span>
+                    <span class="hs-brand-copy">
+                        <span>Hospital Stock</span>
+                        <small>Operacion diaria</small>
+                    </span>
+                </a>
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <ul class="navbar-nav hs-nav-group mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'moviles_dashboard' %}">Moviles</a></li>
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'inventario_list' %}">Inventario</a></li>
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'gastos_list' %}">Gastos</a></li>
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'recuperados_list' %}">Recuperados</a></li>
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'vencidos_list' %}">Vencidos</a></li>
+                        <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'movimientos_list' %}">Movimientos</a></li>
+                        {% if can_create_user %}
+                            <li class="nav-item"><a class="nav-link hs-nav-link" href="{% url 'users_list' %}">Usuarios</a></li>
+                        {% endif %}
+                    </ul>
+                    <ul class="navbar-nav ms-lg-auto">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <div class="hs-user-panel">
+                                    <span class="hs-user-badge">{{ user.username }}</span>
+                                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link nav-link hs-logout-btn m-0">Salir</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link hs-login-link" href="{% url 'login' %}">Ingresar</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
     </div>
-</nav>
-<div class="container">
+
     {% if messages %}
         <div class="mb-3">
             {% for message in messages %}
@@ -52,6 +206,7 @@
     {% endif %}
     {% block content %}{% endblock %}
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

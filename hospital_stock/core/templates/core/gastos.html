@@ -4,17 +4,17 @@
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Gastos y Consumo</h1>
-        {% if user.is_superuser %}
+        {% if user.is_superuser and tipo == 'compras' %}
         <button class="btn btn-outline-primary" onclick="toggleEditarLimites()">
-            <i class="fas fa-cog"></i> Configurar limites
+            <i class="fas fa-cog"></i> Configurar limite de compras
         </button>
         {% endif %}
     </div>
 
-    {% if user.is_superuser %}
+    {% if user.is_superuser and tipo == 'compras' %}
     <div id="formulario-limites" class="card mb-4" style="display: none;">
         <div class="card-body">
-            <h5 class="card-title">Configurar limites de gastos</h5>
+            <h5 class="card-title">Configurar limite de compras</h5>
             <form id="form-limites" method="post" action="{% url 'actualizar_limites_gastos' %}">
                 {% csrf_token %}
                 <div class="row g-3">
@@ -196,25 +196,13 @@
     <div class="tab-pane active">
         <h3>Consumo</h3>
 
-        {% if porcentaje_limite >= 100 %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-danger">
-                <strong>Limite excedido.</strong> Se ha superado el limite mensual de ${{ limite_mensual }}.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        {% elif porcentaje_limite >= porcentaje_alerta %}
-            <div class="alert alert-warning alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-warning">
-                <strong>Advertencia.</strong> Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del limite mensual.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        {% endif %}
-
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card {% if porcentaje_limite >= 100 %}border-danger{% elif porcentaje_limite >= 80 %}border-warning{% else %}border-success{% endif %}">
+                <div class="card border-success">
                     <div class="card-body">
                         <h5 class="card-title">Total consumido</h5>
                         <h3>${{ total_consumo|floatformat:2 }}</h3>
-                        <p class="text-muted">Limite: ${{ limite_mensual }}</p>
+                        <p class="text-muted">El consumo se informa sin limite configurado.</p>
                     </div>
                 </div>
             </div>
