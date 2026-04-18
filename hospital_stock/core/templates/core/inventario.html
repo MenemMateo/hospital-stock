@@ -1,0 +1,111 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Inventario general</h1>
+        <p class="text-muted mb-0">Desde aqui puede administrar medicamentos, precios y cargas de stock sin usar el admin.</p>
+    </div>
+    {% if can_modify_stock %}
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-primary" href="{% url 'add_medicamento' %}">Nuevo medicamento</a>
+            <a class="btn btn-success" href="{% url 'add_inventario' %}">Cargar stock al inventario</a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Medicamentos</h3>
+            <span class="text-muted">{{ medicamentos|length }} registrados</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Precio unitario</th>
+                        {% if can_modify_stock %}
+                            <th class="text-end">Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicamento in medicamentos %}
+                        <tr class="{% if not medicamento.precio_unitario %}table-warning{% endif %}">
+                            <td>{{ medicamento.nombre }}</td>
+                            <td>
+                                {{ medicamento.precio_formateado }}
+                                {% if not medicamento.precio_unitario %}
+                                    <div class="small text-muted">Se puede usar igual; quedara marcado sin precio.</div>
+                                {% endif %}
+                            </td>
+                            {% if can_modify_stock %}
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_precio' medicamento.pk %}">Editar</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if can_modify_stock %}3{% else %}2{% endif %}">No hay medicamentos registrados.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if medicamentos_sin_precio %}
+    <div class="alert alert-warning">
+        <strong>Advertencia:</strong>
+        Hay medicamentos sin precio definido:
+        {% for med in medicamentos_sin_precio %}{{ med.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+        El sistema los deja operar igual y marca las compras como sin precio.
+    </div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">Stock por vencimiento</h3>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'movimientos_list' %}?tipo=entrada">Ver movimientos</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Cantidad</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                        {% if can_modify_stock %}
+                            <th class="text-end">Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventario %}
+                        <tr class="{% if item.es_vencido %}table-danger{% elif item.vence_pronto or item.cantidad < item.low_stock_threshold %}table-warning{% else %}table-success{% endif %}">
+                            <td>{{ item.medicamento.nombre }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>{{ item.fecha_vencimiento }}</td>
+                            <td>{{ item.alert_label }}</td>
+                            {% if can_modify_stock %}
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" href="{% url 'transfer_inventory_item' item.pk %}">Transferir a movil</a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if can_modify_stock %}5{% else %}4{% endif %}">No hay inventario registrado.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

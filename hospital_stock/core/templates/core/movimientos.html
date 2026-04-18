@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>Historial de movimientos</h1>
+<form method="get" class="row gy-2 gx-2 mb-4">
+    <div class="col-md-3"><input type="text" name="medicamento" value="{{ filtros.medicamento }}" class="form-control" placeholder="Medicamento"></div>
+    <div class="col-md-3"><input type="text" name="movil" value="{{ filtros.movil }}" class="form-control" placeholder="Móvil"></div>
+    <div class="col-md-3"><input type="text" name="tipo" value="{{ filtros.tipo }}" class="form-control" placeholder="Tipo"></div>
+    <div class="col-md-3"><button class="btn btn-primary">Filtrar</button></div>
+</form>
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Medicamento</th>
+            <th>Cantidad</th>
+            <th>Móvil</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.fecha }}</td>
+                <td>{{ movimiento.get_tipo_display }}</td>
+                <td>{{ movimiento.medicamento.nombre }}</td>
+                <td>{{ movimiento.cantidad }}</td>
+                <td>
+                    {% if movimiento.movil %}
+                        {{ movimiento.movil.nombre }}
+                    {% else %}
+                        Inventario
+                    {% endif %}
+                </td>
+                <td>{{ movimiento.descripcion }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6">No hay movimientos registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

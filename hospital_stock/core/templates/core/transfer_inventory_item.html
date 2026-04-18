@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="mb-1">Transferir stock a movil</h1>
+    <p class="text-muted mb-0">Use esta pantalla para mover stock desde inventario sin pasar por una accion global.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="mb-2"><strong>Medicamento:</strong> {{ inventario.medicamento.nombre }}</p>
+                <p class="mb-2"><strong>Disponible:</strong> {{ inventario.cantidad }}</p>
+                <p class="mb-0"><strong>Vencimiento:</strong> {{ inventario.fecha_vencimiento }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" type="submit">Transferir</button>
+                        <a href="{% url 'inventario_list' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Detalle de {{ movil.nombre }}</h1>
+        <p class="text-muted mb-0">Este movil ahora funciona como centro de operacion para su stock.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="{% url 'movimientos_list' %}?movil={{ movil.nombre|urlencode }}">Ver movimientos</a>
+        {% if can_modify_stock %}
+            <a href="{% url 'add_stock_item' movil.pk %}" class="btn btn-success">Agregar medicamento al movil</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Medicamentos cargados</div>
+                <div class="display-6">{{ stock_items|length }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Unidades totales</div>
+                <div class="display-6">{{ total_unidades }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Accion principal</div>
+                <div class="fw-semibold">Toque un medicamento para operar su stock</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Medicamento</th>
+                        <th>Cantidad</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stock_items %}
+                        <tr class="{% if item.es_vencido %}table-danger{% elif item.vence_pronto or item.cantidad < item.low_stock_threshold %}table-warning{% else %}table-success{% endif %}">
+                            <td>
+                                <a class="fw-semibold text-decoration-none" href="{% url 'edit_stock_item' item.pk %}">{{ item.medicamento.nombre }}</a>
+                            </td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>{{ item.fecha_vencimiento }}</td>
+                            <td>
+                                {% if item.es_vencido %}
+                                    <span class="badge text-bg-danger">Vencido</span>
+                                {% elif item.vence_pronto or item.cantidad < item.low_stock_threshold %}
+                                    <span class="badge text-bg-warning">Alerta</span>
+                                {% else %}
+                                    <span class="badge text-bg-success">OK</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if can_modify_stock %}
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="btn btn-sm btn-outline-success" href="{% url 'edit_stock_item' item.pk %}?mode=add">Agregar stock</a>
+                                        <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_stock_item' item.pk %}?mode=set">Ajustar stock</a>
+                                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'registrar_consumo' item.pk %}">Registrar consumo</a>
+                                        <a class="btn btn-sm btn-outline-dark" href="{% url 'movimientos_list' %}?medicamento={{ item.medicamento.nombre|urlencode }}&movil={{ movil.nombre|urlencode }}">Ver movimientos</a>
+                                        <form method="post" action="{% url 'descartar_stock_item' item.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            {% if item.es_vencido %}
+                                                <button class="btn btn-sm btn-danger" type="submit">Eliminar vencido</button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">Descartar</button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <a class="btn btn-sm btn-outline-dark" href="{% url 'movimientos_list' %}?medicamento={{ item.medicamento.nombre|urlencode }}&movil={{ movil.nombre|urlencode }}">Ver movimientos</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No hay stock en este movil. Use "Agregar medicamento al movil" para comenzar.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

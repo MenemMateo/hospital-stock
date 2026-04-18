@@ -1,0 +1,136 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1>{{ titulo }}</h1>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <p class="text-muted mb-3">Móvil: <strong>{{ movil.nombre }}</strong></p>
+        
+        <form method="post" id="transferirForm">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <!-- Medicamento -->
+            <div class="mb-3">
+                <label class="form-label" for="id_medicamento">Medicamento</label>
+                <div class="input-group">
+                    {{ form.medicamento }}
+                    <span class="input-group-text" id="cantidad-total">
+                        <strong>Disponible: <span id="cantidad-total-valor">-</span></strong>
+                    </span>
+                </div>
+                {% for error in form.medicamento.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <!-- Fecha de vencimiento (dinámico) -->
+            <div class="mb-3">
+                <label class="form-label" for="id_fecha_vencimiento">Fecha de vencimiento</label>
+                <div class="input-group">
+                    <select class="form-select" id="id_fecha_vencimiento" name="fecha_vencimiento">
+                        <option value="">Selecciona un medicamento primero</option>
+                    </select>
+                    <span class="input-group-text" id="fecha-info">
+                        <span id="fecha-info-valor">-</span>
+                    </span>
+                </div>
+                {% for error in form.fecha_vencimiento.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <!-- Cantidad -->
+            <div class="mb-3">
+                <label class="form-label" for="id_cantidad">Cantidad</label>
+                {{ form.cantidad }}
+                {% for error in form.cantidad.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <!-- Botones -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'movil_detail' movil.pk %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Parsear JSON que viene del servidor
+const inventarioData = JSON.parse('{{ inventario_data|safe }}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    const medicamentoSelect = document.getElementById('id_medicamento');
+    const fechaSelect = document.getElementById('id_fecha_vencimiento');
+    const cantidadTotalSpan = document.getElementById('cantidad-total-valor');
+    const fechaInfoSpan = document.getElementById('fecha-info-valor');
+    const cantidadInput = document.getElementById('id_cantidad');
+    
+    // Cuando cambia el medicamento
+    medicamentoSelect.addEventListener('change', function() {
+        const medId = this.value;
+        
+        if (!medId) {
+            // Restaurar valores por defecto
+            fechaSelect.innerHTML = '<option value="">Selecciona un medicamento primero</option>';
+            cantidadTotalSpan.textContent = '-';
+            fechaInfoSpan.textContent = '-';
+            cantidadInput.setAttribute('max', '');
+            return;
+        }
+        
+        // Llenar fechas disponibles para este medicamento
+        const medData = inventarioData[medId];
+        if (medData) {
+            // Mostrar cantidad total
+            cantidadTotalSpan.textContent = medData.cantidad_total;
+            
+            // Llenar select de fechas
+            fechaSelect.innerHTML = '<option value="">Selecciona una fecha</option>';
+            medData.fechas.forEach(f => {
+                const option = document.createElement('option');
+                option.value = f.fecha;
+                option.textContent = f.fecha;
+                option.dataset.cantidad = f.cantidad;
+                option.dataset.dias = f.dias_restantes;
+                fechaSelect.appendChild(option);
+            });
+        }
+    });
+    
+    // Cuando cambia la fecha
+    fechaSelect.addEventListener('change', function() {
+        if (this.value === '') {
+            fechaInfoSpan.textContent = '-';
+            return;
+        }
+        
+        const option = this.options[this.selectedIndex];
+        const cantidad = option.dataset.cantidad;
+        const dias = option.dataset.dias;
+        
+        cantidadInput.setAttribute('max', cantidad);
+        
+        let infoText = `${cantidad} disponibles`;
+        if (dias >= 0) {
+            infoText += ` (${dias} días)`;
+        } else {
+            infoText += ` (VENCIDO)`;
+        }
+        
+        fechaInfoSpan.textContent = infoText;
+    });
+});
+</script>
+
+<style>
+#cantidad-total, #fecha-info {
+    background-color: #f8f9fa;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+</style>
+{% endblock %}

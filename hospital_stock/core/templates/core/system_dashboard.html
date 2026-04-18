@@ -1,0 +1,284 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Hospital Stock</h1>
+        <p class="text-muted mb-0">Resumen general del sistema para la operacion diaria.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        {% if detail_mode %}
+            <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}">Ocultar detalle</a>
+        {% else %}
+            <a class="btn btn-primary" href="{% url 'dashboard' %}?detail=1">Modo detalle</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{% url 'moviles_dashboard' %}">Ir a moviles</a>
+    </div>
+</div>
+
+{% if porcentaje_limite >= 100 %}
+    <div class="alert alert-danger">
+        El gasto mensual ya supero el limite configurado de ${{ config_gastos.limite_mensual }}.
+    </div>
+{% elif porcentaje_limite >= config_gastos.porcentaje_alerta %}
+    <div class="alert alert-warning">
+        El gasto mensual va por {{ porcentaje_limite|floatformat:1 }}% del limite configurado.
+    </div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    {% for card in summary_cards %}
+        <div class="col-md-3">
+            <div class="card border-{{ card.variant }} shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small">{{ card.label }}</div>
+                    <div class="display-6">{{ card.value }}</div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Stock bajo</h5>
+                    <span class="badge text-bg-warning">{{ low_alerts|length }}</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for item in low_alerts|slice:":5" %}
+                        <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                            <div class="fw-semibold">{{ item.medicamento }}</div>
+                            <div class="small text-muted">{{ item.ubicacion }} | {{ item.cantidad }} unidades</div>
+                        </a>
+                    {% empty %}
+                        <div class="text-muted">No hay alertas de stock bajo.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Por vencer</h5>
+                    <span class="badge text-bg-warning">{{ expiring_alerts|length }}</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for item in expiring_alerts|slice:":5" %}
+                        <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                            <div class="fw-semibold">{{ item.medicamento }}</div>
+                            <div class="small text-muted">{{ item.ubicacion }} | vence {{ item.fecha_vencimiento }}</div>
+                        </a>
+                    {% empty %}
+                        <div class="text-muted">No hay medicamentos por vencer.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Vencidos</h5>
+                    <span class="badge text-bg-danger">{{ expired_alerts|length }}</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for item in expired_alerts|slice:":5" %}
+                        <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                            <div class="fw-semibold">{{ item.medicamento }}</div>
+                            <div class="small text-muted">{{ item.ubicacion }} | vencio {{ item.fecha_vencimiento }}</div>
+                        </a>
+                    {% empty %}
+                        <div class="text-muted">No hay vencidos activos.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Movimientos recientes</h4>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'movimientos_list' %}">Ver todos</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Medicamento</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Movil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movimiento in recent_movements %}
+                        <tr>
+                            <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>{{ movimiento.medicamento.nombre }}</td>
+                            <td>{{ movimiento.get_tipo_display }}</td>
+                            <td>{{ movimiento.cantidad }}</td>
+                            <td>{% if movimiento.movil %}{{ movimiento.movil.nombre }}{% else %}Inventario{% endif %}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No hay movimientos registrados.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if detail_mode %}
+    <div class="row g-4 mt-1">
+        <div class="col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h4>Alertas completas</h4>
+                    <div class="mb-3">
+                        <h6>Stock bajo</h6>
+                        <div class="list-group">
+                            {% for item in low_alerts %}
+                                <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                                    {{ item.medicamento }} | {{ item.ubicacion }} | {{ item.cantidad }} unidades
+                                </a>
+                            {% empty %}
+                                <div class="text-muted">Sin alertas.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Por vencer</h6>
+                        <div class="list-group">
+                            {% for item in expiring_alerts %}
+                                <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                                    {{ item.medicamento }} | {{ item.ubicacion }} | {{ item.fecha_vencimiento }}
+                                </a>
+                            {% empty %}
+                                <div class="text-muted">Sin alertas.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <h6>Vencidos</h6>
+                        <div class="list-group">
+                            {% for item in expired_alerts %}
+                                <a href="{{ item.url }}" class="list-group-item list-group-item-action">
+                                    {{ item.medicamento }} | {{ item.ubicacion }} | {{ item.fecha_vencimiento }}
+                                </a>
+                            {% empty %}
+                                <div class="text-muted">Sin vencidos.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4>Detalle por movil</h4>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Movil</th>
+                                    <th>Items</th>
+                                    <th>Unidades</th>
+                                    <th>Bajo</th>
+                                    <th>Por vencer</th>
+                                    <th>Vencidos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resumen_moviles %}
+                                    <tr>
+                                        <td><a href="{% url 'movil_detail' item.movil.pk %}">{{ item.movil.nombre }}</a></td>
+                                        <td>{{ item.total_items }}</td>
+                                        <td>{{ item.total_unidades }}</td>
+                                        <td>{{ item.stock_bajo }}</td>
+                                        <td>{{ item.por_vencer }}</td>
+                                        <td>{{ item.vencidos }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6">No hay moviles cargados.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4>Detalle por medicamento</h4>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Medicamento</th>
+                                    <th>Inventario</th>
+                                    <th>Moviles</th>
+                                    <th>Por vencer</th>
+                                    <th>Vencidos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in resumen_medicamentos %}
+                                    <tr>
+                                        <td>{{ item.nombre }}</td>
+                                        <td>{{ item.inventario }}</td>
+                                        <td>{{ item.moviles }}</td>
+                                        <td>{{ item.por_vencer }}</td>
+                                        <td>{{ item.vencidos }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5">No hay medicamentos cargados.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4>Gasto mensual detallado</h4>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="small text-muted">Total mensual</div>
+                                <div class="h4 mb-0">${{ gasto_total_mes|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="small text-muted">Compras</div>
+                                <div class="h4 mb-0">${{ gasto_compras|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="small text-muted">Consumo</div>
+                                <div class="h4 mb-0">${{ gasto_consumo|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0 mt-3">Limite configurado: ${{ config_gastos.limite_mensual }} | alerta desde {{ config_gastos.porcentaje_alerta }}%.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
