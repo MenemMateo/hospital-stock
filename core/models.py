@@ -161,7 +161,9 @@ class Movimiento(models.Model):
         ('entrada', 'Entrada'),
         ('salida', 'Salida'),
         ('ajuste', 'Ajuste'),
+        ('consumo', 'Consumo'),
         ('recuperado', 'Recuperado'),
+        ('vencido', 'Vencido'),
     ]
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     medicamento = models.ForeignKey(Medicamento, on_delete=models.CASCADE)

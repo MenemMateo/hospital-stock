@@ -5,9 +5,11 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('moviles/', views.moviles_dashboard, name='moviles_dashboard'),
     path('movil/<int:pk>/', views.movil_detail, name='movil_detail'),
     path('movil/<int:pk>/stock/agregar/', views.add_stock_item, name='add_stock_item'),
     path('inventario/', views.inventario_list, name='inventario_list'),
+    path('inventario/<int:pk>/transferir/', views.transfer_inventory_item, name='transfer_inventory_item'),
     path('inventario/agregar-medicamento/', views.add_medicamento, name='add_medicamento'),
     path('inventario/agregar-inventario/', views.add_inventario, name='add_inventario'),
     path('usuarios/crear/', views.create_user, name='create_user'),

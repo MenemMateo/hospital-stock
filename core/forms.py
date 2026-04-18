@@ -24,6 +24,19 @@ class MoveStockForm(forms.Form):
     fecha_vencimiento = forms.DateField(label='Fecha de vencimiento', widget=forms.DateInput(attrs={'type': 'date'}))
 
 
+class TransferirInventarioItemForm(forms.Form):
+    movil = forms.ModelChoiceField(
+        queryset=Movil.objects.all(),
+        label='Movil destino',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label='Cantidad a transferir',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+    )
+
+
 class MovilForm(forms.ModelForm):
     class Meta:
         model = Movil
@@ -350,19 +363,31 @@ class AgregarMedicamentoAlInventarioForm(forms.Form):
 
 
 class ConsumoStockForm(forms.Form):
+    TIPO_CONSUMO_CHOICES = [
+        ('uso_normal', 'Uso normal'),
+        ('vencido', 'Vencido'),
+        ('perdida', 'Perdida'),
+        ('devolucion', 'Devolucion'),
+    ]
+
     cantidad = forms.IntegerField(
         min_value=1,
         label='Cantidad consumida',
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
     )
-    descripcion = forms.CharField(
+    tipo_consumo = forms.ChoiceField(
+        choices=TIPO_CONSUMO_CHOICES,
+        label='Tipo de consumo',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    observacion = forms.CharField(
         required=False,
-        label='Descripcion',
+        label='Observacion',
         widget=forms.Textarea(
             attrs={
                 'rows': 3,
                 'class': 'form-control',
-                'placeholder': 'Opcional. Ej: Consumo en guardia, reposicion parcial, etc.',
+                'placeholder': 'Opcional. Agregue contexto si hace falta.',
             }
         ),
     )

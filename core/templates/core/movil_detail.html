@@ -77,7 +77,14 @@
                                         <a class="btn btn-sm btn-outline-primary" href="{% url 'edit_stock_item' item.pk %}?mode=set">Ajustar stock</a>
                                         <a class="btn btn-sm btn-outline-secondary" href="{% url 'registrar_consumo' item.pk %}">Registrar consumo</a>
                                         <a class="btn btn-sm btn-outline-dark" href="{% url 'movimientos_list' %}?medicamento={{ item.medicamento.nombre|urlencode }}&movil={{ movil.nombre|urlencode }}">Ver movimientos</a>
-                                        <a class="btn btn-sm btn-outline-danger" href="{% url 'descartar_stock_item' item.pk %}">Descartar / vencido</a>
+                                        <form method="post" action="{% url 'descartar_stock_item' item.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            {% if item.es_vencido %}
+                                                <button class="btn btn-sm btn-danger" type="submit">Eliminar vencido</button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">Descartar</button>
+                                            {% endif %}
+                                        </form>
                                     </div>
                                 {% else %}
                                     <a class="btn btn-sm btn-outline-dark" href="{% url 'movimientos_list' %}?medicamento={{ item.medicamento.nombre|urlencode }}&movil={{ movil.nombre|urlencode }}">Ver movimientos</a>

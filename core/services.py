@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from .models import Compra, Inventario, Movimiento, Recuperado, StockMovil, Vencido
 
@@ -242,7 +243,7 @@ def registrar_ingreso_inventario(
         return inventario, compra
 
 
-def registrar_consumo_stock(stock, cantidad, descripcion=''):
+def registrar_consumo_stock(stock, cantidad, tipo_consumo='uso_normal', observacion=''):
     if cantidad <= 0:
         raise ValidationError('La cantidad consumida debe ser mayor que cero.')
 
@@ -254,18 +255,66 @@ def registrar_consumo_stock(stock, cantidad, descripcion=''):
         medicamento = stock.medicamento
         stock.cantidad -= cantidad
 
+        descripcion_base = f'Consumo en {movil.nombre}'
+        detalle_tipo = {
+            'uso_normal': 'uso normal',
+            'vencido': 'vencido',
+            'perdida': 'perdida',
+            'devolucion': 'devolucion',
+        }.get(tipo_consumo, 'uso normal')
+        descripcion = f'{descripcion_base} ({detalle_tipo})'
+        if observacion:
+            descripcion = f'{descripcion}. {observacion}'
+
         if stock.cantidad == 0:
             stock.delete()
         else:
             stock.full_clean()
             stock.save()
 
-        log_movimiento(
-            tipo='salida',
+        contar_como_gasto = tipo_consumo != 'devolucion'
+        registrar_compra(
             medicamento=medicamento,
             cantidad=cantidad,
             movil=movil,
-            descripcion=descripcion or f'Consumo registrado en {movil.nombre}',
+            contar_como_gasto=contar_como_gasto,
+            motivo_sin_gasto='Devolucion al circuito de stock' if not contar_como_gasto else '',
+        )
+
+        if tipo_consumo == 'vencido':
+            Vencido.objects.create(
+                medicamento=medicamento,
+                cantidad=cantidad,
+                movil_origen=movil,
+                fecha_vencimiento=stock.fecha_vencimiento,
+            )
+            log_movimiento(
+                tipo='vencido',
+                medicamento=medicamento,
+                cantidad=cantidad,
+                movil=movil,
+                descripcion=f'Eliminacion por vencimiento en {movil.nombre}',
+            )
+        elif tipo_consumo == 'devolucion':
+            Recuperado.objects.create(
+                medicamento=medicamento,
+                cantidad=cantidad,
+                movil_origen=movil,
+            )
+            log_movimiento(
+                tipo='recuperado',
+                medicamento=medicamento,
+                cantidad=cantidad,
+                movil=movil,
+                descripcion=f'Devolucion de stock desde {movil.nombre}',
+            )
+
+        log_movimiento(
+            tipo='consumo',
+            medicamento=medicamento,
+            cantidad=cantidad,
+            movil=movil,
+            descripcion=descripcion,
         )
 
 
@@ -328,11 +377,11 @@ def descartar_stock(stock):
             fecha_vencimiento=stock.fecha_vencimiento,
         )
         log_movimiento(
-            tipo='salida',
+            tipo='vencido',
             medicamento=stock.medicamento,
             cantidad=stock.cantidad,
             movil=stock.movil,
-            descripcion=f'Stock descartado por vencimiento en {stock.movil.nombre} (vencia el {stock.fecha_vencimiento})',
+            descripcion=f'Eliminacion por vencimiento en {stock.movil.nombre} ({stock.fecha_vencimiento})',
         )
         stock.delete()
 
