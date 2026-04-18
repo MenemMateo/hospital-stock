@@ -1,6 +1,9 @@
 {% extends 'core/base.html' %}
 {% block content %}
 <h1>{{ titulo }}</h1>
+{% if descripcion %}
+    <p class="text-muted">{{ descripcion }}</p>
+{% endif %}
 <div class="card shadow-sm">
     <div class="card-body">
         <form method="post">

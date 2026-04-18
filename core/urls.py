@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('movil/<int:pk>/', views.movil_detail, name='movil_detail'),
+    path('movil/<int:pk>/stock/agregar/', views.add_stock_item, name='add_stock_item'),
     path('inventario/', views.inventario_list, name='inventario_list'),
     path('inventario/agregar-medicamento/', views.add_medicamento, name='add_medicamento'),
     path('inventario/agregar-inventario/', views.add_inventario, name='add_inventario'),
@@ -15,6 +16,7 @@ urlpatterns = [
     path('vencidos/', views.vencidos_list, name='vencidos_list'),
     path('movimientos/', views.movimientos_list, name='movimientos_list'),
     path('stock/<int:pk>/descartar/', views.descartar_stock_item, name='descartar_stock_item'),
+    path('stock/<int:pk>/consumo/', views.registrar_consumo, name='registrar_consumo'),
     path('movil/agregar/', views.add_movil, name='add_movil'),
     path('stock/<int:pk>/editar/', views.edit_stock_item, name='edit_stock_item'),
     path('movil/<int:pk>/transferir/', views.transferir_stock, name='transferir_stock'),
