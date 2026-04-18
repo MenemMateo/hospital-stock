@@ -3,24 +3,23 @@
 {% block content %}
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Gastos y Consumos</h1>
+        <h1>Gastos y Consumo</h1>
         {% if user.is_superuser %}
         <button class="btn btn-outline-primary" onclick="toggleEditarLimites()">
-            <i class="fas fa-cog"></i> Configurar límites
+            <i class="fas fa-cog"></i> Configurar limites
         </button>
         {% endif %}
     </div>
 
-    <!-- Formulario de edición de límites (oculto por defecto) -->
     {% if user.is_superuser %}
     <div id="formulario-limites" class="card mb-4" style="display: none;">
         <div class="card-body">
-            <h5 class="card-title">Configurar límites de gastos</h5>
+            <h5 class="card-title">Configurar limites de gastos</h5>
             <form id="form-limites" method="post" action="{% url 'actualizar_limites_gastos' %}">
                 {% csrf_token %}
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label for="limite_mensual" class="form-label">Límite mensual ($)</label>
+                        <label for="limite_mensual" class="form-label">Limite mensual ($)</label>
                         <input type="number" step="0.01" class="form-control" id="limite_mensual" name="limite_mensual" value="{{ limite_mensual }}" required>
                     </div>
                     <div class="col-md-4">
@@ -41,22 +40,21 @@
     </div>
     {% endif %}
 
-    <!-- Tabs de selección -->
     <ul class="nav nav-tabs mb-4" id="gastosTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tipo == 'compras' %}active{% endif %}" href="{% url 'gastos_list' %}?tipo=compras&mes={{ mes|stringformat:"02d" }}&año={{ año }}">
+            <a class="nav-link {% if tipo == 'compras' %}active{% endif %}" href="{% url 'gastos_list' %}?tipo=compras&mes={{ mes|stringformat:"02d" }}&anio={{ anio }}">
                 <i class="fas fa-shopping-cart"></i> Compras
             </a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link {% if tipo == 'consumo' %}active{% endif %}" href="{% url 'gastos_list' %}?tipo=consumo&mes={{ mes|stringformat:"02d" }}&año={{ año }}">
-                <i class="fas fa-pills"></i> Usado por móviles
+            <a class="nav-link {% if tipo == 'consumo' %}active{% endif %}" href="{% url 'gastos_list' %}?tipo=consumo&mes={{ mes|stringformat:"02d" }}&anio={{ anio }}">
+                <i class="fas fa-pills"></i> Consumo
             </a>
         </li>
     </ul>
 
-    <!-- Selector de mes -->
     <form method="get" class="mb-4">
+        <input type="hidden" name="tipo" value="{{ tipo }}">
         <div class="row g-3 align-items-end">
             <div class="col-auto">
                 <label for="mes" class="form-label">Mes</label>
@@ -69,8 +67,8 @@
                 </select>
             </div>
             <div class="col-auto">
-                <label for="año" class="form-label">Año</label>
-                <input type="number" name="año" id="año" class="form-control" value="{{ año }}" min="2020" max="2030">
+                <label for="anio" class="form-label">Anio</label>
+                <input type="number" name="anio" id="anio" class="form-control" value="{{ anio }}" min="2020" max="2030">
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
@@ -78,38 +76,34 @@
         </div>
     </form>
 
-    <!-- TAB 1: COMPRAS -->
     {% if tipo == 'compras' %}
     <div class="tab-pane active">
         <h3>Compras del mes</h3>
 
-        <!-- Alertas de límite -->
         {% if porcentaje_limite >= 100 %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-danger">
-                <strong>¡Límite excedido!</strong> Se ha superado el límite mensual de ${{ limite_mensual }}.
+                <strong>Limite excedido.</strong> Se ha superado el limite mensual de ${{ limite_mensual }}.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         {% elif porcentaje_limite >= porcentaje_alerta %}
             <div class="alert alert-warning alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-warning">
-                <strong>Advertencia:</strong> Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del límite mensual.
+                <strong>Advertencia.</strong> Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del limite mensual.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         {% endif %}
 
-        <!-- Resumen general -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card {% if porcentaje_limite >= 100 %}border-danger{% elif porcentaje_limite >= 80 %}border-warning{% else %}border-success{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Total de compras</h5>
                         <h3>${{ total_gastado|floatformat:2 }}</h3>
-                        <p class="text-muted">Límite: ${{ limite_mensual }}</p>
+                        <p class="text-muted">Limite: ${{ limite_mensual }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Lista de compras -->
         <div class="table-responsive mb-4">
             <table class="table table-hover">
                 <thead class="table-light">
@@ -131,7 +125,7 @@
                             <td>{{ compra.medicamento.nombre }}</td>
                             <td>{{ compra.cantidad }}</td>
                             <td>${{ compra.precio_unitario|floatformat:2 }}</td>
-                            <td>${{ compra.subtotal_formateado }}</td>
+                            <td>{{ compra.subtotal_formateado }}</td>
                             <td>
                                 {% if compra.descuento > 0 %}
                                     <span class="badge bg-success">-{{ compra.descuento_formateado }}</span>
@@ -146,7 +140,7 @@
                                     <br>
                                     <small class="text-muted">{{ compra.motivo_sin_gasto }}</small>
                                 {% else %}
-                                    <span class="badge bg-success">SÍ es gasto</span>
+                                    <span class="badge bg-success">Si es gasto</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -157,7 +151,6 @@
             </table>
         </div>
 
-        <!-- Resumen por medicamento -->
         {% if medicamentos_summary %}
         <div class="mb-4">
             <h4>Resumen por medicamento</h4>
@@ -186,7 +179,6 @@
         </div>
         {% endif %}
 
-        <!-- Medicamentos sin precio -->
         {% if medicamentos_sin_precio %}
             <div class="alert alert-info">
                 <h5>Medicamentos sin precio definido</h5>
@@ -200,40 +192,36 @@
         {% endif %}
     </div>
 
-    <!-- TAB 2: USADO POR MÓVILES -->
     {% else %}
     <div class="tab-pane active">
-        <h3>Consumo por móviles</h3>
+        <h3>Consumo</h3>
 
-        <!-- Alertas de límite -->
         {% if porcentaje_limite >= 100 %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-danger">
-                <strong>¡Límite excedido!</strong> Se ha superado el límite mensual de ${{ limite_mensual }}.
+                <strong>Limite excedido.</strong> Se ha superado el limite mensual de ${{ limite_mensual }}.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         {% elif porcentaje_limite >= porcentaje_alerta %}
             <div class="alert alert-warning alert-dismissible fade show" role="alert" data-session-alert-key="gastos-limite-{{ mes_actual|date:'Y-m' }}-warning">
-                <strong>Advertencia:</strong> Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del límite mensual.
+                <strong>Advertencia.</strong> Se ha alcanzado el {{ porcentaje_limite|floatformat:1 }}% del limite mensual.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         {% endif %}
 
-        <!-- Resumen general -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card {% if porcentaje_limite >= 100 %}border-danger{% elif porcentaje_limite >= 80 %}border-warning{% else %}border-success{% endif %}">
                     <div class="card-body">
                         <h5 class="card-title">Total consumido</h5>
                         <h3>${{ total_consumo|floatformat:2 }}</h3>
-                        <p class="text-muted">Límite: ${{ limite_mensual }}</p>
+                        <p class="text-muted">Limite: ${{ limite_mensual }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Resumen por móvil -->
         <div class="mb-5">
-            <h4>Desglose por móvil</h4>
+            <h4>Desglose por movil</h4>
             <div class="row">
                 {% for resumen in resumen_moviles %}
                     <div class="col-md-6 mb-3">
@@ -284,16 +272,15 @@
                         </div>
                     </div>
                 {% empty %}
-                    <p class="text-center">No hay consumo registrado en los móviles este mes.</p>
+                    <p class="text-center">No hay consumo registrado en los moviles este mes.</p>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Gráfico -->
         {% if resumen_moviles %}
         <div class="mb-5">
-            <h4>Gráfico de consumo por móvil</h4>
-            <button class="btn btn-primary mb-3" onclick="mostrarGrafico()">Ver gráfico</button>
+            <h4>Grafico de consumo por movil</h4>
+            <button class="btn btn-primary mb-3" onclick="mostrarGrafico()">Ver grafico</button>
             <canvas id="gastosChart" style="display: none; max-width: 100%; height: 400px;"></canvas>
         </div>
         {% endif %}

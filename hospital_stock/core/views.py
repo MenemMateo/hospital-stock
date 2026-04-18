@@ -254,11 +254,6 @@ def dashboard(request):
 @login_required
 @group_required(['Empleado', 'Espectador'])
 def moviles_dashboard(request):
-    month_start, month_end = _month_window()
-    total_gastado = Compra.objects.filter(fecha__gte=month_start, fecha__lt=month_end, contar_como_gasto=True).aggregate(total=Sum('total'))['total'] or 0
-    config = ConfiguracionGastos.get_configuracion()
-    porcentaje_limite = (total_gastado / config.limite_mensual) * 100 if config.limite_mensual else 0
-
     estados = []
     for movil in Movil.objects.all():
         if movil.has_expired_stock:
@@ -277,10 +272,6 @@ def moviles_dashboard(request):
         'core/dashboard.html',
         {
             'estados': estados,
-            'total_gastado': total_gastado,
-            'limite_mensual': config.limite_mensual,
-            'porcentaje_alerta': config.porcentaje_alerta,
-            'porcentaje_limite': porcentaje_limite,
         },
     )
 
