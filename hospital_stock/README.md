@@ -91,7 +91,6 @@ hospital_stock/
 │   ├── templates/       # Plantillas HTML
 │   ├── static/          # Archivos estáticos
 │   └── migrations/      # Migraciones de base de datos
-├── db.sqlite3           # Base de datos SQLite
 ├── manage.py            # Script de gestión de Django
 ├── requirements.txt     # Dependencias del proyecto
 └── README.md            # Este archivo
@@ -128,6 +127,6 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## Contacto
 
-Mateo Menem - [Tu email o contacto]
+Mateo Menem - [menemmat@gmail.com]
 
 Enlace del proyecto: [https://github.com/MenemMateo/hospital-stock](https://github.com/MenemMateo/hospital-stock)
